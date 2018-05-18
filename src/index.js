@@ -1,9 +1,4 @@
-const path = require('path');
-
-const cypressPaths = {
-  SCREENSHOT_FOLDER: 'cypress/screenshots',
-  ROOT_FOLDER: '',
-};
+const CYPRESS_SCREENSHOT_FOLDER = 'cypress/screenshots';
 
 /**
  * Creates unique id strings
@@ -35,12 +30,12 @@ function takeScreenshot (name) {
   const id = uuid();
   cy.screenshot(id, { log: false });
   cy.exec(
-    `mv ${cypressPaths.SCREENSHOT_FOLDER}/${id}.png "${cypressPaths.SCREENSHOT_FOLDER}/${name}.png"`,
+    `mv ${CYPRESS_SCREENSHOT_FOLDER}/${id}.png "${CYPRESS_SCREENSHOT_FOLDER}/${name}.png"`,
     { log: false }
   );
   cy.exec(
     `cypress-crop-screenshot ` +
-      `--path="${path.join(cypressPaths.ROOT_FOLDER, cypressPaths.SCREENSHOT_FOLDER, `${name}.png`)}"` +
+      `--path="${CYPRESS_SCREENSHOT_FOLDER}/${name}.png" ` +
       `--top=${frame.top} ` +
       `--left=${frame.left} ` +
       `--width=${frame.width} ` +
@@ -58,28 +53,33 @@ function takeScreenshot (name) {
  * from the previous test run. Assertion will fail if the diff is larger than
  * the specified threshold
  * @param  {[type]} name    [description]
+ * @param  {[type]} domainName    [description]
+ * @param  {[type]} pageName    [description]
+ * @param  {[type]} deviceViewPort    [description]
  * @param  {Object} options [description]
  * @return {[type]}         [description]
  */
-function matchScreenshot (name, options = {}) {
-  const fileName = `${this.test.parent.title} -- ${this.test.title} -- ${name}`;
+function matchScreenshot (name, domainName, pageName, deviceViewPort,  options = {}) {
+
+  const fileName = `${this.test.parent.title} -- ${pageName}`;
 
   console.log('Taking screenshot');
 
   // Ensure that the screenshot folders exist
-  cy.exec(`mkdir -p ${cypressPaths.SCREENSHOT_FOLDER}/new`, { log: false });
-  cy.exec(`mkdir -p ${cypressPaths.SCREENSHOT_FOLDER}/diff`, { log: false });
+  cy.exec(`mkdir -p ${CYPRESS_SCREENSHOT_FOLDER}/new/${domainName}/${deviceViewPort}`, { log: false });
+  cy.exec(`mkdir -p ${CYPRESS_SCREENSHOT_FOLDER}/diff/${domainName}/${deviceViewPort}`, { log: false });
+  cy.exec(`mkdir -p ${CYPRESS_SCREENSHOT_FOLDER}/${domainName}/${deviceViewPort}`, { log: false });
 
   // we need to touch the old file for the first run,
   // we'll check later if the file actually has any content
   // in it or not
-  cy.exec(`touch "${cypressPaths.SCREENSHOT_FOLDER}/${fileName}.png"`, {
+  cy.exec(`touch "${CYPRESS_SCREENSHOT_FOLDER}/${domainName}/${deviceViewPort}/${fileName}.png"`, {
     log: false
   });
 
-  takeScreenshot(`new/${fileName}`);
+  takeScreenshot(`new/${domainName}/${deviceViewPort}/${fileName}`);
   cy
-    .readFile(`${cypressPaths.SCREENSHOT_FOLDER}/${fileName}.png`, 'utf-8', {
+    .readFile(`${CYPRESS_SCREENSHOT_FOLDER}/${domainName}/${deviceViewPort}/${fileName}.png`, 'utf-8', {
       log: false
     })
     .then((value) => {
@@ -88,9 +88,9 @@ function matchScreenshot (name, options = {}) {
         cy
           .exec(
             `cypress-diff-screenshot ` +
-              `--pathOld="${path.join(cypressPaths.ROOT_FOLDER, cypressPaths.SCREENSHOT_FOLDER, `${fileName}.png`)}" ` +
-              `--pathNew="${path.join(cypressPaths.ROOT_FOLDER, cypressPaths.SCREENSHOT_FOLDER, 'new', `${fileName}.png`)}" ` +
-              `--target="${path.join(cypressPaths.ROOT_FOLDER, cypressPaths.SCREENSHOT_FOLDER, 'diff', `${fileName}.png`)}" ` +
+              `--pathOld="${CYPRESS_SCREENSHOT_FOLDER}/${domainName}/${deviceViewPort}/${fileName}.png" ` +
+              `--pathNew="${CYPRESS_SCREENSHOT_FOLDER}/new/${domainName}/${deviceViewPort}/${fileName}.png" ` +
+              `--target="${CYPRESS_SCREENSHOT_FOLDER}/diff/${domainName}/${deviceViewPort}/${fileName}.png" ` +
               `--threshold=${options.threshold} ` +
               `--thresholdType=${options.thresholdType} `,
             { log: false }
@@ -100,11 +100,11 @@ function matchScreenshot (name, options = {}) {
             const matches = result.stdout === 'Yay';
             if (Cypress.config('updateScreenshots') || matches) {
               cy.exec(
-                `mv "${cypressPaths.SCREENSHOT_FOLDER}/new/${fileName}.png" ` +
-                  `"${cypressPaths.SCREENSHOT_FOLDER}/${fileName}.png"`,
+                `mv "${CYPRESS_SCREENSHOT_FOLDER}/new/${domainName}/${deviceViewPort}/${fileName}.png" ` +
+                  `"${CYPRESS_SCREENSHOT_FOLDER}/${domainName}/${deviceViewPort}/${fileName}.png"`,
                 { log: false }
               );
-              cy.exec(`rm "${cypressPaths.SCREENSHOT_FOLDER}/diff/${fileName}.png"`, { log: false });
+              cy.exec(`rm "${CYPRESS_SCREENSHOT_FOLDER}/diff/${domainName}/${deviceViewPort}/${fileName}.png"`, { log: false });
             }
             if (!Cypress.config('updateScreenshots')) {
               assert.isTrue(matches, 'Screenshots match');
@@ -113,8 +113,8 @@ function matchScreenshot (name, options = {}) {
       } else {
         console.log('No previous screenshot found! Match passed!');
         cy.exec(
-          `mv "${cypressPaths.SCREENSHOT_FOLDER}/new/${fileName}.png" ` +
-            `"${cypressPaths.SCREENSHOT_FOLDER}/${fileName}.png"`,
+          `mv "${CYPRESS_SCREENSHOT_FOLDER}/new/${domainName}/${deviceViewPort}/${fileName}.png" ` +
+            `"${CYPRESS_SCREENSHOT_FOLDER}/${domainName}/${deviceViewPort}/${fileName}.png"`,
           { log: false }
         );
       }
@@ -125,8 +125,7 @@ function matchScreenshot (name, options = {}) {
  * Register `matchScreenshot` custom command
  * @param  {String} commandName
  */
-function register (commandName = 'matchScreenshot', cypressRootFolder = cypressPaths.ROOT_FOLDER) {
-  cypressPaths.ROOT_FOLDER = cypressRootFolder;
+function register (commandName = 'matchScreenshot') {
   Cypress.Commands.add(commandName, matchScreenshot);
 }
 
