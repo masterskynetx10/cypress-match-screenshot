@@ -106,9 +106,6 @@ function matchScreenshot (name, domainName, pageName, deviceViewPort,  options =
               );
               cy.exec(`rm "${CYPRESS_SCREENSHOT_FOLDER}/diff/${domainName}/${deviceViewPort}/${fileName}.png"`, { log: false });
             }
-            if (!Cypress.config('updateScreenshots')) {
-              assert.isTrue(matches, 'Screenshots match');
-            }
           });
       } else {
         console.log('No previous screenshot found! Match passed!');
