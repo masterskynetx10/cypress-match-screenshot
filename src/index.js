@@ -61,7 +61,7 @@ function takeScreenshot (name) {
  */
 function matchScreenshot (name, domainName, pageName, deviceViewPort,  options = {}) {
 
-  const fileName = `${this.test.parent.title} -- ${pageName}`;
+  const fileName = `${pageName}`;
 
   console.log('Taking screenshot');
 
