@@ -33,18 +33,6 @@ function takeScreenshot (name) {
     `mv ${CYPRESS_SCREENSHOT_FOLDER}/${id}.png "${CYPRESS_SCREENSHOT_FOLDER}/${name}.png"`,
     { log: false }
   );
-  cy.exec(
-    `cypress-crop-screenshot ` +
-      `--path="${CYPRESS_SCREENSHOT_FOLDER}/${name}.png" ` +
-      `--top=${frame.top} ` +
-      `--left=${frame.left} ` +
-      `--width=${frame.width} ` +
-      `--height=${frame.height} ` +
-      `--windowWidth=${window.parent.innerWidth} ` +
-      `--testWidth=${testDimensions[1]} ` +
-      `--testHeight=${testDimensions[2]}`,
-    { log: false }
-  );
   console.log('Screenshot taken');
 }
 

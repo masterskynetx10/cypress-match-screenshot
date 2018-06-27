@@ -4,7 +4,6 @@
   "description": "Utility to take screenshots during a cypress test and match them against previous runs",
   "main": "src/index.js",
   "bin": {
-    "cypress-crop-screenshot": "src/crop-screenshot.js",
     "cypress-diff-screenshot": "src/diff-screenshot.js"
   },
   "repository": {
