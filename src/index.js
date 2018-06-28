@@ -28,7 +28,7 @@ function takeScreenshot (name) {
     .innerText.match(/([0-9]+) x ([0-9]+)/);
 
   const id = uuid();
-  cy.screenshot(id, { log: false });
+  cy.screenshot(id, {capture: 'fullPage', scale: true, log: false });
   cy.exec(
     `mv ${CYPRESS_SCREENSHOT_FOLDER}/${id}.png "${CYPRESS_SCREENSHOT_FOLDER}/${name}.png"`,
     { log: false }
